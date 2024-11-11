@@ -4,9 +4,12 @@ const app = express();
 
 //app.use(express.json());
 
-app.get("/user", (req, res) => {
-  const { userId, userPassword } = req.query;
-  res.send(`User data sent from ${userId} and his password is ${userPassword}`);
+// This is for params => req like localhost:3000/user/22
+// For query => req like localhost:3000/user?userId=22&userPassword=xyz
+
+app.get("/user/:userId", (req, res) => {
+  const { userId } = req.params;
+  res.send(`User data sent from ${userId}`);
 });
 
 app.listen(3000, () => {
