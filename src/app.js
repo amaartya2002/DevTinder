@@ -2,33 +2,21 @@ const express = require("express");
 
 const app = express();
 
-// app.use(
-//   "/user",
-//   (req, res, next) => {
-//     console.log("Route 1");
+const { adminAuth, userAuth } = require("./middlewares/auth");
 
-//     next();
-//     res.send("From route handler1");
-//   },
-//   (req, res, next) => {
-//     console.log("Route 2");
-//     //res.send("From route handler 2");
-//   }
-// );
+app.use("/admin", adminAuth);
 
-app.use(
-  "/user",
-  (req, res, next) => {
-    console.log("Route 1");
-    res.send("From route handler1");
-    next();
-  },
-  (req, res, next) => {
-    console.log("Route 2");
-    res.send("From route handler 2");
-    next();
-  }
-);
+app.get("/user", userAuth, (req, res) => {
+  res.send("Get all user data");
+});
+
+app.get("/admin/getData", (req, res) => {
+  res.send("Sent all Data");
+});
+
+app.get("/admin/deleteData", (req, res) => {
+  res.send("Deleted a user data.");
+});
 
 app.listen(3000, () => {
   console.log("Server running on port 3000...");
