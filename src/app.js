@@ -2,15 +2,33 @@ const express = require("express");
 
 const app = express();
 
-//app.use(express.json());
+// app.use(
+//   "/user",
+//   (req, res, next) => {
+//     console.log("Route 1");
 
-// This is for params => req like localhost:3000/user/22
-// For query => req like localhost:3000/user?userId=22&userPassword=xyz
+//     next();
+//     res.send("From route handler1");
+//   },
+//   (req, res, next) => {
+//     console.log("Route 2");
+//     //res.send("From route handler 2");
+//   }
+// );
 
-app.get("/user/:userId", (req, res) => {
-  const { userId } = req.params;
-  res.send(`User data sent from ${userId}`);
-});
+app.use(
+  "/user",
+  (req, res, next) => {
+    console.log("Route 1");
+    res.send("From route handler1");
+    next();
+  },
+  (req, res, next) => {
+    console.log("Route 2");
+    res.send("From route handler 2");
+    next();
+  }
+);
 
 app.listen(3000, () => {
   console.log("Server running on port 3000...");
