@@ -8,19 +8,15 @@ const User = require("./models/user");
 
 const PORT = process.env.PORT || 2700;
 
+app.use(express.json());
+
 app.post("/signup", async (req, res) => {
-  const user = new User({
-    firstName: "Sachin",
-    lastName: "Tendulakr",
-    emailId: "tendulakar@10.com",
-    password: "Aillaaaa",
-    age: "45",
-    gender: "Male",
-  }); // Creating a new instance of the User Model
+  //console.log(req.body); // Will convert the json obj into a js obj and put it into the req body
+
+  const user = new User(req.body); // Creating a new instance of the User Model
 
   try {
     await user.save();
-
     res.send("User added succesfully!!");
   } catch (err) {
     res.status(400).send("Unable to save data", err.message);
