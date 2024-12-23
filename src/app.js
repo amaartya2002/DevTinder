@@ -80,14 +80,15 @@ app.delete("/user", async (req, res) => {
 });
 
 app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+  const emailId = req.body.emailId;
 
   try {
-    const user = await User.findByIdAndUpdate(
-      { _id: userId },
+    const user = await User.findOneAndUpdate(
       {
-        firstName: "Amartya",
-        lastName: "Kumar",
+        emailId: emailId,
+      },
+      {
+        password: "CHINTAPAKDAMDAM",
       },
       { returnDocument: "before" }
     );
