@@ -34,7 +34,7 @@ app.post("/signup", async (req, res) => {
     await user.save();
     res.send("User added succesfully!!");
   } catch (err) {
-    res.status(400).send("Unable to save data", err.message);
+    res.status(400).send("Unable to save data" + err.message);
   }
 });
 
@@ -44,7 +44,7 @@ app.get("/feed", async (req, res) => {
     const users = await User.find({});
     res.status(200).send(users);
   } catch (err) {
-    res.status(400).send("Unable to get the feed!!");
+    res.status(400).send("Unable to get the feed!!" + err.message);
   }
 });
 
@@ -61,7 +61,7 @@ app.get("/findOneUser", async (req, res) => {
 
     res.send(user);
   } catch (err) {
-    res.status(400).send("Can't find the user", err.message);
+    res.status(400).send("Can't find the user" + err.message);
   }
 });
 
@@ -75,29 +75,29 @@ app.delete("/user", async (req, res) => {
     console.log(deletedUser);
     res.send("User Deleted!!");
   } catch (err) {
-    res.status(400).send("Could not delete user!!");
+    res.status(400).send("Could not delete user!!" + err.message);
   }
 });
 
+// PATCH req => update user data using _id or any other instance
 app.patch("/user", async (req, res) => {
   const emailId = req.body.emailId;
+  const data = req.body;
 
   try {
     const user = await User.findOneAndUpdate(
       {
         emailId: emailId,
       },
-      {
-        password: "CHINTAPAKDAMDAM",
-      },
-      { returnDocument: "before" }
+      data,
+      { returnDocument: "after", runValidators: true }
     );
 
     console.log(user);
 
     res.send("User updated succesfully!!");
   } catch (err) {
-    res.status(400).send("Unaable to update the user!!", err.message);
+    res.status(400).send("Unaable to update the user!!" + err.message);
   }
 });
 
