@@ -2,6 +2,10 @@ const express = require("express");
 
 const app = express();
 
+const {validateReqBody} = require('./utils/validate')
+
+const bcrypt = require('bcrypt')
+
 const connectToDB = require("./config/database");
 
 const User = require("./models/user");
@@ -28,15 +32,66 @@ app.get("/user", async (req, res) => {
 app.post("/signup", async (req, res) => {
   //console.log(req.body); // Will convert the json obj into a js obj and put it into the req body
 
-  const user = new User(req.body); // Creating a new instance of the User Model
+  //Validate the data
+  validateReqBody(req);
+
+  const {firstName , lastName , emailId , password} = req.body
+  
+  //Encrypt the password
+  const hashedPassword = await bcrypt.hash(password,10);
+  console.log(hashedPassword);
+  
+
+  const user = new User(
+    {
+      firstName,
+      lastName,
+      emailId,
+      password : hashedPassword
+    }
+  ); // Creating a new instance of the User Model
 
   try {
     await user.save();
     res.send("User added succesfully!!");
   } catch (err) {
-    res.status(400).send("Unable to save data" + err.message);
+    res.status(400).send(`ERROR : ${err.message}`);
   }
 });
+
+
+app.post('/login',async(req,res) => {
+
+  try{
+
+    
+  const {emailId,password} = req.body;
+
+  const user = await User.findOne({
+    emailId : emailId
+  })
+
+
+    
+  if(emailId != user.emailId){
+    throw new Error('Invalid Credentails')
+  }
+
+  const isTruePassword = await bcrypt.compare(password,user.password)
+
+  if(isTruePassword){
+    res.send('User logged in succesfully');
+  }else{
+    throw new Error('Invalid Credentails')
+  }
+
+  }catch(err){
+    res.status(400).send('ERROR: '+err.message);
+    
+  }
+
+
+})
 
 // GET req => to get the feed of all the users
 app.get("/feed", async (req, res) => {
@@ -80,14 +135,36 @@ app.delete("/user", async (req, res) => {
 });
 
 // PATCH req => update user data using _id or any other instance
-app.patch("/user", async (req, res) => {
-  const emailId = req.body.emailId;
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params?.userId;
   const data = req.body;
 
   try {
-    const user = await User.findOneAndUpdate(
+    const ALLOWED_UPDATES_FIELD = [
+      "firstName",
+      "lastName",
+      "password",
+      "photoUrl",
+      "about",
+      "skills",
+      "gender",
+    ];
+
+    const isAllowed = Object.keys(data).every((k) =>
+      ALLOWED_UPDATES_FIELD.includes(k)
+    );
+
+    if (!isAllowed) {
+      throw new Error("Cannot update this field");
+    }
+
+    if (data?.skills.length > 5) {
+      throw new Error("Cant add more than 5 skills");
+    }
+
+    const user = await User.findByIdAndUpdate(
       {
-        emailId: emailId,
+        _id: userId,
       },
       data,
       { returnDocument: "after", runValidators: true }
