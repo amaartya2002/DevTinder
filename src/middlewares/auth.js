@@ -1,31 +1,32 @@
-// Handling auth middleware for all types of functions...(get,post,put)
-const adminAuth = (req, res, next) => {
-  console.log("Admin auth getting checked!");
+const jwt = require('jsonwebtoken')
+const User = require('../models/user')
 
-  let token = "xyz";
-  let isAuthorized = token === "xyz";
+const userAuth = async (req, res, next) => {
+ try{
+  const {token} = req.cookies;  
 
-  if (!isAuthorized) {
-    res.status(401).send("Unauthorized access");
-  } else {
-    next();
+  if(!token){
+    throw new Error('Invalid token !!')
   }
-};
 
-const userAuth = (req, res, next) => {
-  console.log("Admin auth getting checked!");
+  const userObjId = await jwt.verify(token,"ENCRYPTIONWITHASECRETKEY$22" );
 
-  let token = "xyzx";
-  let isAuthorized = token === "xyz";
+  const {_id} = userObjId ;
 
-  if (!isAuthorized) {
-    res.status(401).send("Unauthorized access");
-  } else {
-    next();
+  const user = await User.findById({_id});
+
+  if(!user){
+    throw new Error('No such User present!!');
+  }
+
+  req.user = user;
+
+  next();
+}catch(err){
+    res.status(400).send("ERROR" + err.message);
   }
 };
 
 module.exports = {
   userAuth,
-  adminAuth,
 };

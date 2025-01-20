@@ -3,8 +3,13 @@ const express = require("express");
 const app = express();
 
 const {validateReqBody} = require('./utils/validate')
+const {userAuth} = require('./middlewares/auth')
 
 const bcrypt = require('bcrypt')
+
+const cookieParser = require('cookie-parser')
+
+const jwt = require('jsonwebtoken');
 
 const connectToDB = require("./config/database");
 
@@ -13,6 +18,7 @@ const User = require("./models/user");
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(cookieParser());
 
 // GET req => to get one User
 app.get("/user", async (req, res) => {
@@ -28,6 +34,7 @@ app.get("/user", async (req, res) => {
   }
 });
 
+
 // POST req => add user to the feed
 app.post("/signup", async (req, res) => {
   //console.log(req.body); // Will convert the json obj into a js obj and put it into the req body
@@ -39,7 +46,6 @@ app.post("/signup", async (req, res) => {
   
   //Encrypt the password
   const hashedPassword = await bcrypt.hash(password,10);
-  console.log(hashedPassword);
   
 
   const user = new User(
@@ -60,26 +66,59 @@ app.post("/signup", async (req, res) => {
 });
 
 
+
+// GET request => after logged in to get the profile of the user
+app.get('/profile', userAuth , async(req,res) => {
+
+  try{
+     
+    user = req.user
+     res.send(user);
+
+  }catch(err){
+        res.status(400).send('ERROR: '+ err.message);
+  }
+})
+
+
+
+app.post('/sendConnection',userAuth,async(req,res) => {
+  try{
+
+    res.send('Sending a connection req...');
+
+  }catch(err){
+    res.status(400).send('ERROR: ' + err.message);
+  }
+})
+
+
+// POST req => login a user
 app.post('/login',async(req,res) => {
 
   try{
 
-    
   const {emailId,password} = req.body;
 
   const user = await User.findOne({
     emailId : emailId
   })
-
-
     
   if(emailId != user.emailId){
     throw new Error('Invalid Credentails')
   }
 
-  const isTruePassword = await bcrypt.compare(password,user.password)
+  const isTruePassword = user.validateUserPassword(password);
 
   if(isTruePassword){
+
+
+    // create a JWT token on the id of the user with a secret-key
+     const token = await user.getJWT();
+
+    // Wrap the token into a cookie and send it to the User
+    res.cookie("token",token);
+
     res.send('User logged in succesfully');
   }else{
     throw new Error('Invalid Credentails')
