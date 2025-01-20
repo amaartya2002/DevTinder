@@ -1,136 +1,40 @@
 const express = require("express");
-
 const app = express();
-
 const {validateReqBody} = require('./utils/validate')
 const {userAuth} = require('./middlewares/auth')
-
-const bcrypt = require('bcrypt')
-
 const cookieParser = require('cookie-parser')
-
 const jwt = require('jsonwebtoken');
 
 const connectToDB = require("./config/database");
 
-const User = require("./models/user");
+const authRouter = require('./routes/auth')
+const profileRouter = require('./routes/profile')
+const requestRouter = require('./routes/request')
+
+
 
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cookieParser());
 
-// GET req => to get one User
-app.get("/user", async (req, res) => {
-  const userEmail = req.body.emailId;
 
-  try {
-    const user = await User.find({
-      emailId: userEmail,
-    });
-    res.send(user);
-  } catch (err) {
-    res.send("User Not Found");
-  }
-});
-
-
-// POST req => add user to the feed
-app.post("/signup", async (req, res) => {
-  //console.log(req.body); // Will convert the json obj into a js obj and put it into the req body
-
-  //Validate the data
-  validateReqBody(req);
-
-  const {firstName , lastName , emailId , password} = req.body
-  
-  //Encrypt the password
-  const hashedPassword = await bcrypt.hash(password,10);
-  
-
-  const user = new User(
-    {
-      firstName,
-      lastName,
-      emailId,
-      password : hashedPassword
-    }
-  ); // Creating a new instance of the User Model
-
-  try {
-    await user.save();
-    res.send("User added succesfully!!");
-  } catch (err) {
-    res.status(400).send(`ERROR : ${err.message}`);
-  }
-});
+app.use('/',authRouter);
+app.use('/',profileRouter);
+app.use('/',requestRouter);
 
 
 
-// GET request => after logged in to get the profile of the user
-app.get('/profile', userAuth , async(req,res) => {
-
-  try{
-     
-    user = req.user
-     res.send(user);
-
-  }catch(err){
-        res.status(400).send('ERROR: '+ err.message);
-  }
-})
 
 
 
-app.post('/sendConnection',userAuth,async(req,res) => {
-  try{
-
-    res.send('Sending a connection req...');
-
-  }catch(err){
-    res.status(400).send('ERROR: ' + err.message);
-  }
-})
 
 
-// POST req => login a user
-app.post('/login',async(req,res) => {
-
-  try{
-
-  const {emailId,password} = req.body;
-
-  const user = await User.findOne({
-    emailId : emailId
-  })
-    
-  if(emailId != user.emailId){
-    throw new Error('Invalid Credentails')
-  }
-
-  const isTruePassword = user.validateUserPassword(password);
-
-  if(isTruePassword){
 
 
-    // create a JWT token on the id of the user with a secret-key
-     const token = await user.getJWT();
-
-    // Wrap the token into a cookie and send it to the User
-    res.cookie("token",token);
-
-    res.send('User logged in succesfully');
-  }else{
-    throw new Error('Invalid Credentails')
-  }
-
-  }catch(err){
-    res.status(400).send('ERROR: '+err.message);
-    
-  }
 
 
-})
+
 
 // GET req => to get the feed of all the users
 app.get("/feed", async (req, res) => {
