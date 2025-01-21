@@ -1,4 +1,6 @@
-const validator = require('validator')
+const validator = require('validator');
+const User = require('../models/user');
+
 
 
 const validateReqBody = (req) => {
@@ -18,6 +20,37 @@ const validateReqBody = (req) => {
 }
 
 
+const validateEditBody = (req) => {
+
+
+  const allowedEditableFields = [
+    "firstName",
+    "lastName",
+    "emailId",
+    "age",
+    "photoUrl",
+    "about",
+    "skills"
+  ]
+
+  const isEditAllowed = Object.keys(req.body).every((field) => allowedEditableFields.includes(field));
+
+  return isEditAllowed;
+}
+
+const validateEmailAddressForPasswordChange = (req) => {
+  
+  const loggedInUser = req.user 
+
+  const letEditPassword = loggedInUser.emailId === req.body.emailId
+  
+  return letEditPassword;
+
+}
+
+
 module.exports = {
   validateReqBody,
+  validateEditBody,
+  validateEmailAddressForPasswordChange
 }
