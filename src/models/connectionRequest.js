@@ -6,6 +6,7 @@ const connectionRequestSchema = new mongoose.Schema({
   fromUserId : {
     type : mongoose.Types.ObjectId,
     required : true,
+    ref : "User" // reference to the User Collection (collects userId of the User collection) => acts as a child pointing to the parent(User)
   },
 
   toUserId : {

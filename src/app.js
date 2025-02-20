@@ -4,13 +4,16 @@ const {validateReqBody} = require('./utils/validate')
 const {userAuth} = require('./middlewares/auth')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv')
+
+dotenv.config();
 
 const connectToDB = require("./config/database");
 
 const authRouter = require('./routes/auth')
 const profileRouter = require('./routes/profile')
 const requestRouter = require('./routes/request')
-
+const userRouter = require(('./routes/user'))
 
 
 const PORT = process.env.PORT || 3000;
@@ -22,17 +25,7 @@ app.use(cookieParser());
 app.use('/',authRouter);
 app.use('/',profileRouter);
 app.use('/',requestRouter);
-
-
-
-
-
-
-
-
-
-
-
+app.use('/',userRouter);
 
 
 
